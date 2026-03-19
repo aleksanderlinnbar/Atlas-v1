@@ -1,13 +1,10 @@
+import { organizations } from "../data/organizations";
 import { events } from "../data/events";
 import OrganizationCard from "./components/OrganizationCard";
 import EventCard from "./components/EventCard";
 export default function Home() {
   
 
-  const organizations = [
-  { id: 1, name: "NTNU Finance Society" },
-  { id: 2, name: "Start NTNU" },
-  { id: 3, name: "Abakus" },];
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <main className="max-w-5xl mx-auto">
@@ -24,14 +21,13 @@ export default function Home() {
               <EventCard key={event.id} id={event.id} title={event.title} />))}
           </div>
         </section>
-
         <section>
           <h2 className="text-2xl font-semibold mb-4">Organizations</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {organizations.map((org) => (
-  <OrganizationCard key={org.id} name={org.name} />))}
-          </div>
-        </section>
+              {organizations.map((org) => (
+              <OrganizationCard key={org.id} id={org.id} name={org.name} />))}
+         </div>
+       </section>
       </main>
     </div>
   );

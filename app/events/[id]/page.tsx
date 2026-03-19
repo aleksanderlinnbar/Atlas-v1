@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { events } from "../../../data/events";
 
 type EventPageProps = {
@@ -22,11 +23,40 @@ export default async function EventPage({ params }: EventPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <main className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">{event.title}</h1>
-        <p className="text-gray-400">This is the event details page.</p>
-      </main>
-    </div>
-  );
+  <div className="min-h-screen bg-black text-white px-6 py-10">
+    <main className="max-w-3xl mx-auto">
+      <Link href="/" className="text-gray-400 hover:text-white mb-6 inline-block">
+  ← Back
+</Link>
+
+      {/* Title */}
+      <h1 className="text-4xl font-bold mb-6">{event.title}</h1>
+
+      {/* Info card */}
+      <div className="bg-zinc-900 rounded-xl p-5 mb-8">
+        <div className="flex flex-col gap-2 text-gray-300">
+          <p>
+            <span className="text-gray-500">Date</span><br />
+            <span className="text-white font-medium">{event.date}</span>
+          </p>
+
+          <p>
+            <span className="text-gray-500">Location</span><br />
+            <span className="text-white font-medium">{event.location}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="bg-zinc-900 rounded-xl p-6">
+        <h2 className="text-xl font-semibold mb-3">About this event</h2>
+        <p className="text-gray-300 leading-7">
+          {event.description}
+        </p>
+      </div>
+
+    </main>
+  </div>
+);
+
 }
