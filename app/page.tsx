@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { organizations } from "../data/organizations";
-import { events } from "../data/events";
+import { useEffect, useState } from "react";
+import { Event, Organization } from "../types";
 import OrganizationCard from "./components/OrganizationCard";
 import EventCard from "./components/EventCard";
+import FilterBar from "./components/FilterBar";
 
 export default function Home() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/events").then((res) => res.json()),
+      fetch("/api/organizations").then((res) => res.json()),
+    ]).then(([eventsData, orgsData]) => {
+      setEvents(eventsData);
+      setOrganizations(orgsData);
+      setLoading(false);
+    });
+  }, []);
 
   const categories = [
     "All",
@@ -17,6 +32,14 @@ export default function Home() {
       ...organizations.map((o) => o.category),
     ]),
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white p-8">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-8">
@@ -27,83 +50,51 @@ export default function Home() {
           Discover student events, organizations, and opportunities at NTNU
         </p>
 
-        {/* Search */}
-        <input
-          type="text"
+        <FilterBar
+          search={search}
+          setSearch={setSearch}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
           placeholder="Search events or organizations..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full p-3 mb-6 rounded-lg bg-zinc-900 text-white placeholder-gray-500 outline-none"
         />
 
-        {/* Category buttons */}
-        <div className="flex gap-2 mb-8 flex-wrap">
-          {categories.map((cat) =>
-          (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat === "All" ? "" : cat)}
-              className={`px-3 py-1 rounded-full text-sm ${selectedCategory === cat || (cat === "All" && selectedCategory === "")
-                ? "bg-white text-black"
-                : "bg-zinc-800 text-white"
-                }`}
+        {/* Featured */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Featured</h2>
+
+          {events.slice(0, 1).map((event) => (
+            <div
+              key={event.id}
+              className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800"
             >
-              {cat}
-            </button>
-          ))}
-          {selectedCategory && (
-            <div className="mb-6 text-sm text-gray-400">
-              Filtering by:{" "}
-              <span className="text-white font-medium">{selectedCategory}</span>
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-56 object-cover"
+              />
+
+              <div className="p-6">
+                <p className="text-sm text-gray-400 mb-2">{event.category}</p>
+                <h3 className="text-2xl font-semibold mb-3">{event.title}</h3>
+
+                <div className="text-sm text-gray-500 mb-4">
+                  <p>{event.date}</p>
+                  <p>{event.location}</p>
+                </div>
+
+                <p className="text-gray-300 mb-6">{event.description}</p>
+
+                <a
+                  href={`/events/${event.id}`}
+                  className="inline-block px-4 py-2 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition"
+                >
+                  View event
+                </a>
+              </div>
             </div>
-          )}
-          {(selectedCategory || search) && (
-            <button
-              onClick={() => {
-                setSelectedCategory("");
-                setSearch("");
-              }}
-              className="mb-8 px-3 py-1 text-sm bg-zinc-800 rounded-full hover:bg-zinc-700"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-<section className="mb-12">
-  <h2 className="text-2xl font-semibold mb-4">Featured</h2>
-
-  {events.slice(0, 1).map((event) => (
-    <div
-      key={event.id}
-      className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800"
-    >
-      <img
-        src={event.image}
-        alt={event.title}
-        className="w-full h-56 object-cover"
-      />
-
-      <div className="p-6">
-        <p className="text-sm text-gray-400 mb-2">{event.category}</p>
-        <h3 className="text-2xl font-semibold mb-3">{event.title}</h3>
-
-        <div className="text-sm text-gray-500 mb-4">
-          <p>{event.date}</p>
-          <p>{event.location}</p>
-        </div>
-
-        <p className="text-gray-300 mb-6">{event.description}</p>
-
-        <a
-          href={`/events/${event.id}`}
-          className="inline-block px-4 py-2 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition"
-        >
-          View event
-        </a>
-      </div>
-    </div>
-  ))}
-</section>
+          ))}
+        </section>
 
         {/* Events */}
         <section className="mb-12">
@@ -111,9 +102,7 @@ export default function Home() {
           <div className="grid gap-4 sm:grid-cols-2">
             {events
               .filter((event) =>
-                event.title
-                  .toLowerCase()
-                  .includes(search.toLowerCase())
+                event.title.toLowerCase().includes(search.toLowerCase())
               )
               .filter(
                 (event) =>
@@ -138,9 +127,7 @@ export default function Home() {
 
         {/* Organizations */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">
-            Organizations
-          </h2>
+          <h2 className="text-2xl font-semibold mb-4">Organizations</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {organizations
               .filter((org) =>
@@ -148,7 +135,8 @@ export default function Home() {
               )
               .filter(
                 (org) =>
-                  selectedCategory === "" || org.category === selectedCategory
+                  selectedCategory === "" ||
+                  org.category === selectedCategory
               )
               .map((org) => (
                 <OrganizationCard
